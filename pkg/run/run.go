@@ -1,0 +1,41 @@
+// Package run implements the main loop, by launching the healthcheck service
+// and the services' controller loop.
+package run
+
+import (
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+
+	"github.com/bpineau/kube-named-ports/config"
+	"github.com/bpineau/kube-named-ports/pkg/health"
+	"github.com/bpineau/kube-named-ports/pkg/services"
+	"github.com/bpineau/kube-named-ports/pkg/worker"
+)
+
+// Run launchs the effective services controllers goroutines
+func Run(config *config.KdnConfig, worker worker.Worker) {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	defer wg.Wait()
+
+	svc := services.NewController(config, worker)
+	go svc.Start(&wg)
+	defer func(s *services.Controller) {
+		go s.Stop()
+	}(svc)
+
+	go func() {
+		if err := health.HeartBeatService(config); err != nil {
+			config.Logger.Warningf("Healtcheck service failed: %s", err)
+		}
+	}()
+
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGTERM)
+	signal.Notify(sigterm, syscall.SIGINT)
+	<-sigterm
+
+	config.Logger.Infof("Stopping the service controller")
+}
