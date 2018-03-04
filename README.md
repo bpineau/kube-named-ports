@@ -49,3 +49,48 @@ Flags:
   -i, --resync-interval int    resync interval in seconds (default 900)
   -z, --zone string            cluster zone name (optional, can be guessed)
 ```
+
+## Docker image
+
+A ready to use, public docker image is available at [Docker Hub](https://hub.docker.com/r/bpineau/kube-named-ports/), published at each release.
+You can use it directly from your Kubernetes deployments, ie.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-named-ports
+  namespace: kube-system
+  labels:
+    k8s-app: kube-named-ports
+spec:
+  selector:
+    matchLabels:
+      k8s-app: kube-named-ports
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-named-ports
+    spec:
+      containers:
+        - name: kube-named-ports
+          image: bpineau/kube-named-ports:0.3.0
+          args:
+            - --cluster=MySuperCluster
+            - --healthcheck-port=8080
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 50Mi
+            limits:
+              cpu: 0.2
+              memory: 100Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            timeoutSeconds: 5
+            initialDelaySeconds: 10
+```
+
