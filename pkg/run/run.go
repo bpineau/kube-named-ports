@@ -15,12 +15,13 @@ import (
 )
 
 // Run launchs the effective services controllers goroutines
-func Run(config *config.KdnConfig, worker worker.Worker) {
+func Run(config *config.KnpConfig) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	defer wg.Wait()
 
-	svc := services.NewController(config, worker)
+	wrk := worker.NewWorker(config)
+	svc := services.NewController(config, wrk)
 	go svc.Start(&wg)
 	defer func(s *services.Controller) {
 		go s.Stop()

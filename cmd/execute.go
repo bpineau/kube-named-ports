@@ -14,13 +14,12 @@ import (
 	"github.com/bpineau/kube-named-ports/config"
 	klog "github.com/bpineau/kube-named-ports/pkg/log"
 	"github.com/bpineau/kube-named-ports/pkg/run"
-	"github.com/bpineau/kube-named-ports/pkg/worker"
 )
 
 const appName = "kube-named-ports"
 
 var (
-	version = "0.2.0 (HEAD)"
+	version = "0.3.0 (HEAD)"
 
 	cfgFile   string
 	apiServer string
@@ -31,6 +30,9 @@ var (
 	logServer string
 	healthP   int
 	resync    int
+	cluster   string
+	zone      string
+	project   string
 
 	// FakeCS uses the client-go testing clientset
 	FakeCS bool
@@ -50,11 +52,14 @@ var (
 		Long:  "Add named ports given by services annotations on GCP node pools",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			conf := &config.KdnConfig{
+			conf := &config.KnpConfig{
 				DryRun:     viper.GetBool("dry-run"),
 				Logger:     klog.New(viper.GetString("log.level"), viper.GetString("log.server"), viper.GetString("log.output")),
 				HealthPort: viper.GetInt("healthcheck-port"),
 				ResyncIntv: time.Duration(viper.GetInt("resync-interval")) * time.Second,
+				Cluster:    viper.GetString("cluster"),
+				Zone:       viper.GetString("zone"),
+				Project:    viper.GetString("project"),
 			}
 			if FakeCS {
 				conf.ClientSet = config.FakeClientSet()
@@ -63,7 +68,12 @@ var (
 			if err != nil {
 				return fmt.Errorf("Failed to initialize the configuration: %+v", err)
 			}
-			run.Run(conf, worker.NewWorker())
+
+			if conf.Cluster == "" {
+				return fmt.Errorf("Cluster name must be specified")
+			}
+
+			run.Run(conf)
 			return nil
 		},
 	}
@@ -84,7 +94,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.AddCommand(versionCmd)
 
-	defaultCfg := "/etc/kdn/" + appName + ".yaml"
+	defaultCfg := "/etc/knp/" + appName + ".yaml"
 	RootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", defaultCfg, "configuration file")
 
 	RootCmd.PersistentFlags().StringVarP(&apiServer, "api-server", "s", "", "kube api server url")
@@ -113,6 +123,15 @@ func init() {
 
 	RootCmd.PersistentFlags().IntVarP(&resync, "resync-interval", "i", 900, "resync interval in seconds (0 to disable)")
 	bindPFlag("resync-interval", "resync-interval")
+
+	RootCmd.PersistentFlags().StringVarP(&cluster, "cluster", "n", "", "cluster name (mandatory)")
+	bindPFlag("cluster", "cluster")
+
+	RootCmd.PersistentFlags().StringVarP(&zone, "zone", "z", "", "cluster zone name (optional, can be guessed)")
+	bindPFlag("zone", "zone")
+
+	RootCmd.PersistentFlags().StringVarP(&project, "project", "j", "", "project (optional when in cluster, can be found in host's metadata")
+	bindPFlag("project", "project")
 }
 
 func initConfig() {

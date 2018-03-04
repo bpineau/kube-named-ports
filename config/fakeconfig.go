@@ -18,8 +18,8 @@ var (
 )
 
 // FakeConfig returns a configuration struct using a fake clientset, for unit tests
-func FakeConfig(objects ...runtime.Object) *KdnConfig {
-	c := &KdnConfig{
+func FakeConfig(objects ...runtime.Object) *KnpConfig {
+	c := &KnpConfig{
 		DryRun:     true,
 		Logger:     log.New("", "", "test"),
 		ClientSet:  fake.NewSimpleClientset(objects...),

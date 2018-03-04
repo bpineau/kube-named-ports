@@ -10,8 +10,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// KdnConfig is the configuration struct, passed to controllers's Init()
-type KdnConfig struct {
+// KnpConfig is the configuration struct, passed to controllers's Init()
+type KnpConfig struct {
 	// When DryRun is true, we display but don't really send notifications
 	DryRun bool
 
@@ -26,10 +26,19 @@ type KdnConfig struct {
 
 	// ResyncIntv define the duration between full resync. Set to 0 to disable resyncs.
 	ResyncIntv time.Duration
+
+	// Cluster is the name of the cluster we'll operate on. Mandatory.
+	Cluster string
+
+	// Zone is the cluster's zone. Can be guessed if not provided.
+	Zone string
+
+	// Project is the cluster's project. Can be guessed from host's metadata if not provided.
+	Project string
 }
 
 // Init initialize the configuration's ClientSet
-func (c *KdnConfig) Init(apiserver string, kubeconfig string) error {
+func (c *KnpConfig) Init(apiserver string, kubeconfig string) error {
 	var err error
 
 	if c.ClientSet == nil {

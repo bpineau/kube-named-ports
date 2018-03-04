@@ -10,7 +10,7 @@ import (
 )
 
 type healthHandler struct {
-	conf *config.KdnConfig
+	conf *config.KnpConfig
 }
 
 func (h *healthHandler) healthCheckReply(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +20,7 @@ func (h *healthHandler) healthCheckReply(w http.ResponseWriter, r *http.Request)
 }
 
 // HeartBeatService exposes an http healthcheck handler
-func HeartBeatService(c *config.KdnConfig) error {
+func HeartBeatService(c *config.KnpConfig) error {
 	if c.HealthPort == 0 {
 		return nil
 	}

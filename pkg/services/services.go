@@ -30,7 +30,7 @@ var (
 // and are responsible for watching resources, and for calling worker
 // when those resources changes.
 type Controller struct {
-	conf      *config.KdnConfig
+	conf      *config.KnpConfig
 	queue     workqueue.RateLimitingInterface
 	informer  cache.SharedIndexInformer
 	listWatch cache.ListerWatcher
@@ -42,7 +42,7 @@ type Controller struct {
 }
 
 // NewController creates and initialize the service controller
-func NewController(conf *config.KdnConfig, w worker.Worker) *Controller {
+func NewController(conf *config.KnpConfig, w worker.Worker) *Controller {
 	c := &Controller{
 		conf:   conf,
 		worker: w,
@@ -77,6 +77,7 @@ func (c *Controller) Start(wg *sync.WaitGroup) {
 
 	c.startInformer()
 
+	c.worker.Start()
 	go c.run(c.stopCh)
 
 	<-c.stopCh
@@ -94,6 +95,7 @@ func (c *Controller) Stop() {
 	c.initMu.Unlock()
 
 	close(c.stopCh)
+	c.worker.Stop()
 
 	// give everything 0.2s max to stop gracefully
 	time.Sleep(200 * time.Millisecond)
@@ -197,10 +199,11 @@ func (c *Controller) processItem(key string) error {
 		return nil
 	}
 
-	portValue, err := strconv.Atoi(val)
+	portValue, err := strconv.ParseInt(val, 10, 64)
 	if err != nil {
 		return fmt.Errorf("Failed to parse port value '%s' annotation %v", val, err)
 	}
 
-	return c.worker.Add(portName, portValue)
+	c.worker.Add(portName, portValue)
+	return nil
 }

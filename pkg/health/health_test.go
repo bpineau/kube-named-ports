@@ -20,7 +20,7 @@ func TestHealthCheckHandler(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	conf := new(config.KdnConfig)
+	conf := new(config.KnpConfig)
 	hh := healthHandler{conf: conf}
 	handler := http.HandlerFunc(hh.healthCheckReply)
 	handler.ServeHTTP(rr, req)

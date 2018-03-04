@@ -1,121 +1,204 @@
-// https://godoc.org/cloud.google.com/go
-// https://godoc.org/google.golang.org/api/container/v1
-// https://godoc.org/google.golang.org/api/compute/v1#InstanceGroupsSetNamedPortsRequest
-// https://cloud.google.com/compute/docs/reference/rest/beta/instanceGroups/list
-// https://github.com/golang/oauth2/blob/master/google/example_test.go
-
 package namedports
 
 import (
-	"flag"
 	"fmt"
 	"log"
-	"os"
+	"reflect"
 	"strings"
 
+	"cloud.google.com/go/compute/metadata"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
-
 	"google.golang.org/api/compute/v0.beta"
 	container "google.golang.org/api/container/v1"
 )
 
-func launch(project string, zone string) {
+// PortList is a group of named ports (port name, port number)
+type PortList map[string]int64
+
+// NamedPort maintains instance groups named ports in sync with a provided PortList
+type NamedPort struct {
+	zone    string
+	cluster string
+	project string
+	context context.Context
+	logger  *logrus.Logger
+	dryrun  bool
+}
+
+type igInfo struct {
+	name  string
+	zone  string
+	ports PortList
+}
+
+// NewNamedPort returns a NamedPort instance
+func NewNamedPort(zone, cluster, project string, dryrun bool, logger *logrus.Logger) *NamedPort {
+	var err error
 	ctx := context.Background()
 
-	// See https://cloud.google.com/docs/authentication/.
-	// Use GOOGLE_APPLICATION_CREDENTIALS environment variable to specify
-	// a service account key file to authenticate to the API.
+	if cluster == "" {
+		log.Fatal("Cluster name is mandatory")
+	}
 
+	if project == "" {
+		project, err = metadata.ProjectID()
+		if err != nil {
+			log.Fatalf("Could not find current GCP project: %v", err)
+		}
+	}
+
+	if zone == "" {
+		svc, _, err := getServices(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		zone, err = getClusterZone(project, cluster, svc)
+		if err != nil {
+			log.Fatalf("Could not find cluster zone: %v", err)
+		}
+	}
+
+	return &NamedPort{
+		zone:    zone,
+		project: project,
+		cluster: cluster,
+		context: ctx,
+		dryrun:  dryrun,
+		logger:  logger,
+	}
+}
+
+func getServices(ctx context.Context) (*container.Service, *compute.Service, error) {
+	// We'll use the current host ServiceAccount if possible. If not available,
+	// pass auth according to https://cloud.google.com/docs/authentication/
+	// (ie. via GOOGLE_APPLICATION_CREDENTIALS environment or otherwise).
 	hc, err := google.DefaultClient(ctx, container.CloudPlatformScope, compute.CloudPlatformScope)
 	if err != nil {
-		log.Fatalf("Could not get authenticated client: %v", err)
+		return nil, nil, fmt.Errorf("could not get authenticated client: %v", err)
 	}
 
 	svc, err := container.New(hc)
 	if err != nil {
-		log.Fatalf("Could not initialize gke client: %v", err)
+		return nil, nil, fmt.Errorf("could not initialize gke client: %v", err)
 	}
 
 	csvc, err := compute.New(hc)
 	if err != nil {
-		log.Fatalf("Could not initialize compute client: %v", err)
+		return nil, nil, fmt.Errorf("could not initialize compute client: %v", err)
 	}
 
-	if err := setNamedPorts(svc, csvc, *project, *zone); err != nil {
-		log.Fatal(err)
-	}
+	return svc, csvc, nil
 }
 
-func setNamedPorts(svc *container.Service, csvc *compute.Service, project, zone string) error {
-	list, err := svc.Projects.Zones.Clusters.List(project, "-").Do() // "-" == all zones
-	ctx := context.Background()
-
+// ResyncNamedPorts ensure the GKE cluster's instance groups have the
+// named ports described by the provided PortList.
+func (n *NamedPort) ResyncNamedPorts(expected PortList) error {
+	svc, csvc, err := getServices(n.context)
 	if err != nil {
-		return fmt.Errorf("failed to list clusters: %v", err)
+		return fmt.Errorf("failed to init GCP service: %v", err)
 	}
 
-	// clusters -> nodepools -> instancegroupmanager + instancegroup -> namedports
-	for _, v := range list.Clusters {
-		//fmt.Printf("Cluster %q (%s) master_version: v%s zone: %s\n", v.Name, v.Status, v.CurrentMasterVersion, v.Zone)
-
-		newNamedPort := &compute.NamedPort{
-			Name: "footest1111",
-			Port: 1111,
-		}
-
-		poolList, err := svc.Projects.Zones.Clusters.NodePools.List(project, v.Zone, v.Name).Context(ctx).Do()
-		if err != nil {
-			return fmt.Errorf("failed to list node pools for cluster %q: %v", v.Name, err)
-		}
-		for _, np := range poolList.NodePools {
-			//fmt.Printf("  -> Pool %q (%s) machineType=%s node_version=v%s autoscaling=%v", np.Name, np.Status,
-			//	np.Config.MachineType, np.Version, np.Autoscaling != nil && np.Autoscaling.Enabled)
-
-			for _, ig := range np.InstanceGroupUrls {
-				elm := strings.Split(ig, "/")
-				npZone := elm[8]
-				npIgM := elm[10]
-
-				req, err := csvc.InstanceGroupManagers.Get(project, npZone, npIgM).Do()
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				instanceGroup := strings.Split(req.InstanceGroup, "/")[10]
-				fmt.Printf("\ninstancegroup and ports = %s -> %q -> %s\n", req.Name, req.NamedPorts, instanceGroup)
-
-				namedPorts := append(req.NamedPorts, newNamedPort)
-				rb := &compute.InstanceGroupsSetNamedPortsRequest{NamedPorts: namedPorts}
-				resp, err := csvc.InstanceGroups.SetNamedPorts(project, npZone, instanceGroup, rb).Context(ctx).Do()
-				if err != nil {
-					//log.Fatal(err)
-				}
-				fmt.Printf("%#v\n", resp.HTTPStatusCode)
-
-			}
-		}
-		//fmt.Printf("\n")
+	igz, err := n.getInstanceGroups(svc, csvc)
+	if err != nil {
+		return fmt.Errorf("could not find cluster's instancegroups: %v", err)
 	}
 
-	/*
-		fmt.Println("---------------- intance groups managers -------------------")
-		r, err := csvc.InstanceGroupManagers.List(project, "europe-west1-b").Do()
-		fmt.Printf("%#v\n", r)
+	for _, ig := range *igz {
+		eq := reflect.DeepEqual(ig.ports, expected)
+		if eq {
+			continue
+		}
 
-		fmt.Println("---------------- intance groups named ports -------------------")
-		req, err := csvc.InstanceGroups.List(project, "europe-west1-b").Do() // XXX zone
+		if n.dryrun {
+			fmt.Printf("Instance group %s needs a named ports update\n", ig.name)
+			return nil
+		}
 
+		err := n.updateNamedPorts(expected, &ig, csvc)
 		if err != nil {
-			return fmt.Errorf("failed to instanceGroups: %v", err)
+			return fmt.Errorf("failed to update instance group: %v", err)
 		}
-
-		for _, i := range req.Items {
-			for _, port := range i.NamedPorts {
-				fmt.Printf("namedport: %s -> %d\n", port.Name, port.Port)
-			}
-		}
-	*/
+	}
 
 	return nil
+}
+
+func getClusterZone(project string, cluster string, svc *container.Service) (string, error) {
+	var zone string
+
+	list, err := svc.Projects.Zones.Clusters.List(project, "-").Do() // "-" == all zones
+
+	if err != nil {
+		return zone, fmt.Errorf("failed to list clusters: %v", err)
+	}
+
+	for _, v := range list.Clusters {
+		if v.Name == cluster {
+			zone = v.Zone
+			break
+		}
+	}
+
+	return zone, nil
+}
+
+func (n *NamedPort) getInstanceGroups(svc *container.Service, csvc *compute.Service) (*[]igInfo, error) {
+	var igz []igInfo
+
+	poolList, err := svc.Projects.Zones.Clusters.NodePools.List(n.project, n.zone, n.cluster).Do()
+	if err != nil {
+		return &igz, fmt.Errorf("failed to list node pools for cluster %q: %v", n.cluster, err)
+	}
+
+	for _, np := range poolList.NodePools {
+		for _, ig := range np.InstanceGroupUrls {
+			elm := strings.Split(ig, "/")
+
+			igroup := igInfo{
+				name:  elm[10],
+				zone:  elm[8],
+				ports: make(PortList),
+			}
+
+			req, err := csvc.InstanceGroupManagers.Get(n.project, igroup.zone, igroup.name).Do()
+			if err != nil {
+				return &igz, fmt.Errorf("failed to collect named ports: %v", err)
+			}
+			for _, port := range req.NamedPorts {
+				igroup.ports[port.Name] = port.Port
+			}
+
+			igz = append(igz, igroup)
+		}
+	}
+
+	return &igz, nil
+}
+
+func (n *NamedPort) updateNamedPorts(ports PortList, ig *igInfo, csvc *compute.Service) error {
+	var namedPorts []*compute.NamedPort
+	mergedPorts := make(PortList)
+
+	// we keep all the old named ports, even if not specified. hence the merge.
+	for k, v := range ig.ports {
+		mergedPorts[k] = v
+	}
+	for k, v := range ports {
+		mergedPorts[k] = v
+	}
+
+	for k, v := range mergedPorts {
+		namedPorts = append(namedPorts, &compute.NamedPort{Name: k, Port: v})
+
+	}
+
+	n.logger.Infof("Will update namedports for %s instancegroup\n", ig.name)
+
+	rb := &compute.InstanceGroupsSetNamedPortsRequest{NamedPorts: namedPorts}
+	_, err := csvc.InstanceGroups.SetNamedPorts(n.project, ig.zone, ig.name, rb).Do()
+
+	return err
 }
