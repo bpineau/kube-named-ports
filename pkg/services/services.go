@@ -2,6 +2,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"sync"
@@ -24,6 +25,7 @@ var (
 	maxProcessRetry          = 6
 	namedPortNameAnnotation  = "kube-named-ports.io/port-name"
 	namedPortValueAnnotation = "kube-named-ports.io/port-value"
+	namedPortMapAnnotation   = "kube-named-ports.io/port-map"
 )
 
 // Controller are started in a persistent goroutine at program launch,
@@ -189,6 +191,16 @@ func (c *Controller) processItem(key string) error {
 	}
 
 	svc := obj.(*core_v1.Service)
+
+	rawMap, ok := svc.Annotations[namedPortMapAnnotation]
+	if ok {
+		var portMap map[string]int64
+		if err = json.Unmarshal([]byte(rawMap), &portMap); err != nil {
+			return fmt.Errorf("Failed to unmarshal port-map: %v", err)
+		}
+		c.worker.AddMap(portMap)
+	}
+
 	portName, ok := svc.Annotations[namedPortNameAnnotation]
 	if !ok {
 		return nil

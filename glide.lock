@@ -1,5 +1,5 @@
-hash: 44910f8f5ba2d7932971a0660c68762add7207ff36a1db105046fba90f49d1a2
-updated: 2018-02-26T00:47:40.128839118+01:00
+hash: 97f0bcc25fa29f783532e01d1d7ab6d40c334fdd733ab929d11c010302e1d385
+updated: 2018-03-05T22:10:29.741479351+01:00
 imports:
 - name: cloud.google.com/go
   version: 767c40d6a2e058483c25fa193e963a22da17236d
@@ -60,19 +60,23 @@ imports:
 - name: github.com/howeyc/gopass
   version: bf9dde6d0d2c004a008c27aaee91170c786f6db8
 - name: github.com/imdario/mergo
-  version: 0d4b488675fdec1dde48751b05ab530cf0b630e1
+  version: 163f41321a19dd09362d4c63cc2489db2015f1f4
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/json-iterator/go
-  version: fff342fd040c4460be37f6f98413e73eff0ac3ff
+  version: 25fa392355a1247f99f8975710a2c4f0f55a081f
 - name: github.com/juju/ratelimit
   version: 59fac5042749a5afb9af70e813da1dd5474f0167
 - name: github.com/magiconair/properties
   version: 2c9e9502788518c97fe44e8955cd069417ee89df
 - name: github.com/mitchellh/mapstructure
   version: 00c29f56e2386353d58c599509e8dc3801b0d716
+- name: github.com/modern-go/concurrent
+  version: 28f5fe9fd9e9a8d00b892d0a72d5d31f68b6e7f0
+- name: github.com/modern-go/reflect2
+  version: 0b92968f4be75033e2089fba355a691ea2e9c5cc
 - name: github.com/pelletier/go-toml
-  version: acdc4509485b587f5e675510c4f2c63e90ff68a8
+  version: 05bcc0fb0d3e60da4b8dd5bd7e0ea563eb4ca943
 - name: github.com/peterbourgon/diskv
   version: 2973218375c3d13162e1d3afe1708aaee318ef3f
 - name: github.com/sirupsen/logrus
@@ -94,17 +98,12 @@ imports:
   version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/spf13/viper
   version: 25b30aa063fc18e48662b86996252eabdcf2f0c7
-- name: github.com/v2pro/plz
-  version: aefdc92c60f2df497bae7235b07885367f84f1ea
-  subpackages:
-  - concurrent
-  - reflect2
 - name: golang.org/x/crypto
-  version: 49796115aa4b964c318aad4f3084fdb41e9aa067
+  version: 91a49db82a88618983a78a06c1cbd4e00ab749ab
   subpackages:
   - ssh/terminal
 - name: golang.org/x/net
-  version: cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb
+  version: 22ae77b79946ea320088417e4d50825671d82d57
   subpackages:
   - context
   - context/ctxhttp
@@ -113,26 +112,26 @@ imports:
   - idna
   - lex/httplex
 - name: golang.org/x/oauth2
-  version: 543e37812f10c46c622c9575afd7ad22f22a12ba
+  version: 2f32c3ac0fa4fb807a0fcefb0b6f2468a0d99bd0
   subpackages:
   - google
   - internal
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: f6cff0780e542efa0c8e864dc8fa522808f6a598
+  version: dd2ff4accc098aceecb86b36eaa7829b2a17b1c9
   subpackages:
   - unix
   - windows
 - name: golang.org/x/text
-  version: 27420a1a391f5504f73155051cd274311bf70883
+  version: b7ef84aaf62aa3e70962625c80a571ae7c17cb40
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
 - name: google.golang.org/api
-  version: ab90adb3efa287b869ecb698db42f923cc734972
+  version: 3caa384156365e545aea85c3dca8c95bc666a94d
   subpackages:
   - compute/v0.beta
   - container/v1
@@ -156,7 +155,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: 7f97868eec74b32b0982dd158a51a446d1da7eb5
 - name: k8s.io/api
-  version: b378c47b2dcba7f5c3ef97d8a5a0b3821ec6a001
+  version: 7ebfdc5e7dfac82cc5c53e1259ad579915950e20
   subpackages:
   - admissionregistration/v1alpha1
   - admissionregistration/v1beta1
@@ -188,7 +187,7 @@ imports:
   - storage/v1alpha1
   - storage/v1beta1
 - name: k8s.io/apimachinery
-  version: cced8e64b6ca92a8b6afcbfea3353ca016694a45
+  version: e9ff529c66f83aeac6dff90f11ea0c5b7c4d626a
   subpackages:
   - pkg/api/errors
   - pkg/api/meta
