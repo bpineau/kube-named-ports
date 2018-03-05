@@ -3,7 +3,6 @@ package namedports
 import (
 	"fmt"
 	"log"
-	"reflect"
 	"strings"
 
 	"cloud.google.com/go/compute/metadata"
@@ -107,14 +106,24 @@ func (n *NamedPort) ResyncNamedPorts(expected PortList) error {
 	}
 
 	for _, ig := range *igz {
-		eq := reflect.DeepEqual(ig.ports, expected)
-		if eq {
+		dirty := false
+		for ename, eport := range expected {
+			if igport, ok := ig.ports[ename]; ok {
+				if eport == igport {
+					continue
+				}
+			}
+			n.logger.Infof("Need to add %s->%d port on InstanceGroup %s", ename, eport, ig.name)
+			dirty = true
+		}
+
+		if !dirty {
 			continue
 		}
 
 		if n.dryrun {
-			fmt.Printf("Instance group %s needs a named ports update\n", ig.name)
-			return nil
+			fmt.Printf("Instance group %s needs a named ports update (dry-run)", ig.name)
+			continue
 		}
 
 		err := n.updateNamedPorts(expected, &ig, csvc)
