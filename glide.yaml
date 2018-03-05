@@ -42,3 +42,5 @@ import:
   subpackages:
   - compute/v0.beta
   - container/v1
+- package: github.com/imdario/mergo
+  version: ~0.3.2

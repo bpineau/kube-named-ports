@@ -16,6 +16,12 @@ annotations:
   kube-named-ports.io/port-value: "6666"
 ```
 
+Or you can add several ports in one annotation with an inline json dictionnary:
+```yaml
+annotations:
+  kube-named-ports.io/port-map: '{ "foo": 1234, "bar": 5678, "baz": 9876 }'
+```
+
 ## Build
 
 Assuming you have go 1.9 (or up) and glide in the path, and GOPATH configured:
@@ -80,7 +86,7 @@ spec:
     spec:
       containers:
         - name: kube-named-ports
-          image: bpineau/kube-named-ports:0.3.0
+          image: bpineau/kube-named-ports:0.4.0
           args:
             - --cluster=MySuperCluster
             - --healthcheck-port=8080

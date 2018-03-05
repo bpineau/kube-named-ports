@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/imdario/mergo"
+
 	"github.com/bpineau/kube-named-ports/config"
 	np "github.com/bpineau/kube-named-ports/pkg/namedports"
 )
@@ -14,6 +16,7 @@ type Worker interface {
 	Start()
 	Stop()
 	Add(name string, port int64)
+	AddMap(ports np.PortList)
 }
 
 // PortMapper is worker synchronizing GCP named ports and services annotations
@@ -51,6 +54,15 @@ func (p *PortMapper) Add(name string, port int64) {
 	p.expectedLock.Lock()
 	defer p.expectedLock.Unlock()
 	p.expected[name] = port
+}
+
+// AddMap add several ports in one go
+func (p *PortMapper) AddMap(ports np.PortList) {
+	p.expectedLock.Lock()
+	defer p.expectedLock.Unlock()
+	if err := mergo.Merge(&p.expected, ports, mergo.WithOverride); err != nil {
+		p.config.Logger.Errorf("Error during ports collection: %v (ports: %v)", err, ports)
+	}
 }
 
 func (p *PortMapper) syncNamedPorts() {
