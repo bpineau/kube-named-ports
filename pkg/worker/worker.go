@@ -7,8 +7,8 @@ import (
 
 	"github.com/imdario/mergo"
 
-	"github.com/bpineau/kube-named-ports/config"
-	np "github.com/bpineau/kube-named-ports/pkg/namedports"
+	"github.com/mirakl/kube-named-ports/config"
+	np "github.com/mirakl/kube-named-ports/pkg/namedports"
 )
 
 // Worker ensure the expected named ports are set on all node pools.

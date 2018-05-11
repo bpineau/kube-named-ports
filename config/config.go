@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bpineau/kube-named-ports/pkg/clientset"
+	"github.com/mirakl/kube-named-ports/pkg/clientset"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

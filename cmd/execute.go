@@ -11,9 +11,10 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/client-go/util/homedir"
 
-	"github.com/bpineau/kube-named-ports/config"
-	klog "github.com/bpineau/kube-named-ports/pkg/log"
-	"github.com/bpineau/kube-named-ports/pkg/run"
+	"github.com/mirakl/kube-named-ports/config"
+	klog "github.com/mirakl/kube-named-ports/pkg/log"
+	"github.com/mirakl/kube-named-ports/pkg/run"
+	"log/syslog"
 )
 
 const appName = "kube-named-ports"
@@ -21,18 +22,20 @@ const appName = "kube-named-ports"
 var (
 	version = "0.4.0 (HEAD)"
 
-	cfgFile   string
-	apiServer string
-	kubeConf  string
-	dryRun    bool
-	logLevel  string
-	logOutput string
-	logServer string
-	healthP   int
-	resync    int
-	cluster   string
-	zone      string
-	project   string
+	cfgFile        string
+	apiServer      string
+	kubeConf       string
+	dryRun         bool
+	logLevel       string
+	logOutput      string
+	logServer      string
+	syslogTag      string
+	syslogPriority int
+	healthP        int
+	resync         int
+	cluster        string
+	zone           string
+	project        string
 
 	// FakeCS uses the client-go testing clientset
 	FakeCS bool
@@ -54,7 +57,7 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			conf := &config.KnpConfig{
 				DryRun:     viper.GetBool("dry-run"),
-				Logger:     klog.New(viper.GetString("log.level"), viper.GetString("log.server"), viper.GetString("log.output")),
+				Logger:     klog.New(viper.GetString("log.level"), viper.GetString("log.server"), viper.GetString("log.output"), syslog.Priority(viper.GetInt("syslog.priority")), viper.GetString("syslog.tag")),
 				HealthPort: viper.GetInt("healthcheck-port"),
 				ResyncIntv: time.Duration(viper.GetInt("resync-interval")) * time.Second,
 				Cluster:    viper.GetString("cluster"),
@@ -117,6 +120,13 @@ func init() {
 
 	RootCmd.PersistentFlags().StringVarP(&logServer, "log-server", "r", "", "log server (if using syslog)")
 	bindPFlag("log.server", "log-server")
+
+	RootCmd.PersistentFlags().StringVarP(&syslogTag, "syslog-tag", "t", "kube-named-ports", "syslog tag (if using syslog)")
+	bindPFlag("syslog.tag", "syslog-tag")
+
+	// 128 for LOG_LOCAL0
+	RootCmd.PersistentFlags().IntVarP(&syslogPriority, "syslog-priority", "y", 128, "syslog priority (if using syslog)")
+	bindPFlag("syslog.priority", "syslog-priority")
 
 	RootCmd.PersistentFlags().IntVarP(&healthP, "healthcheck-port", "p", 0, "port for answering healthchecks")
 	bindPFlag("healthcheck-port", "healthcheck-port")

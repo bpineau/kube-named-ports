@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bpineau/kube-named-ports/cmd"
+	"github.com/mirakl/kube-named-ports/cmd"
 )
 
 //var privateExitHandler func(code int) = os.Exit

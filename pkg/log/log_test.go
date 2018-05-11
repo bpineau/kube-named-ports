@@ -7,6 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
+	"log/syslog"
 )
 
 var (
@@ -21,7 +22,7 @@ var (
 )
 
 func TestLog(t *testing.T) {
-	logger := New("warning", "", "test")
+	logger := New("warning", "", "test", syslog.LOG_LOCAL0, "")
 
 	logger.Info("Changed: foo")
 	logger.Warn("Changed: bar")
@@ -37,33 +38,33 @@ func TestLog(t *testing.T) {
 		t.Errorf("Unexpected log entry: %s", hook.LastEntry().Message)
 	}
 
-	logger = New("", "", "test")
+	logger = New("", "", "test", syslog.LOG_LOCAL0, "")
 	if logger.Level != logrus.InfoLevel {
 		t.Error("The default loglevel should be info")
 	}
 
-	logger = New("", "", "")
+	logger = New("", "", "", syslog.LOG_LOCAL0, "")
 	if logger.Out != os.Stderr {
 		t.Error("The default output should be stderr")
 	}
 
-	logger = New("info", "127.0.0.1:514", "syslog")
+	logger = New("info", "127.0.0.1:514", "syslog", syslog.LOG_LOCAL0, "")
 	if fmt.Sprintf("%T", logger) != "*logrus.Logger" {
 		t.Error("Failed to instantiate a syslog logger")
 	}
 
-	logger = New("info", "", "stdout")
+	logger = New("info", "", "stdout", syslog.LOG_LOCAL0, "")
 	if fmt.Sprintf("%T", logger) != "*logrus.Logger" {
 		t.Error("Failed to instantiate a stdout logger")
 	}
 
-	logger = New("info", "", "stderr")
+	logger = New("info", "", "stderr", syslog.LOG_LOCAL0, "")
 	if fmt.Sprintf("%T", logger) != "*logrus.Logger" {
 		t.Error("Failed to instantiate a stderr logger")
 	}
 
 	for _, level := range levels {
-		lg := New(level, "", "test")
+		lg := New(level, "", "test", syslog.LOG_LOCAL0, "")
 		if fmt.Sprintf("%T", lg) != "*logrus.Logger" {
 			t.Errorf("Failed to instantiate at %s level", level)
 		}
@@ -77,7 +78,7 @@ func TestSyslogMissingArg(t *testing.T) {
 		}
 	}()
 
-	_ = New("info", "", "syslog")
+	_ = New("info", "", "syslog", syslog.LOG_LOCAL0, "")
 }
 
 func TestSyslogWrongArg(t *testing.T) {
@@ -87,5 +88,5 @@ func TestSyslogWrongArg(t *testing.T) {
 		}
 	}()
 
-	_ = New("info", "wrong server", "syslog")
+	_ = New("info", "wrong server", "syslog", syslog.LOG_LOCAL0, "")
 }

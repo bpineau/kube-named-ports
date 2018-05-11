@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/bpineau/kube-named-ports.svg?branch=master)](https://travis-ci.org/bpineau/kube-named-ports)
 [![Coverage Status](https://coveralls.io/repos/github/bpineau/kube-named-ports/badge.svg?branch=master)](https://coveralls.io/github/bpineau/kube-named-ports?branch=master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/bpineau/kube-named-ports)](https://goreportcard.com/report/github.com/bpineau/kube-named-ports)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mirakl/kube-named-ports)](https://goreportcard.com/report/github.com/mirakl/kube-named-ports)
 
 Declare GCP named ports on GKE node pools's instance groups according to Kubernetes services annotations.
 
@@ -58,6 +58,8 @@ Flags:
   -r, --log-server string      log server (if using syslog)
   -j, --project string         project (optional when in cluster, can be found in host's metadata
   -i, --resync-interval int    resync interval in seconds (default 900)
+  -y, --syslog-priority int    syslog priority (if using syslog) (default 128)
+  -t, --syslog-tag string      syslog tag (if using syslog) (default "kube-named-ports")  
   -z, --zone string            cluster zone name (optional, can be guessed)
 ```
 

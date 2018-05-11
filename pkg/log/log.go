@@ -14,13 +14,13 @@ import (
 )
 
 // New initialize logrus and return a new logger.
-func New(logLevel string, logServer string, logOutput string) *logrus.Logger {
+func New(logLevel string, logServer string, logOutput string, syslogPriority syslog.Priority, syslogTag string) *logrus.Logger {
 	level, err := logrus.ParseLevel(logLevel)
 	if err != nil {
 		level = logrus.InfoLevel
 	}
 
-	output, hook := getOutput(logServer, logOutput)
+	output, hook := getOutput(logServer, logOutput, syslogPriority, syslogTag)
 
 	formatter := &logrus.TextFormatter{
 		FullTimestamp:   true,
@@ -41,7 +41,7 @@ func New(logLevel string, logServer string, logOutput string) *logrus.Logger {
 	return log
 }
 
-func getOutput(logServer string, logOutput string) (io.Writer, logrus.Hook) {
+func getOutput(logServer string, logOutput string, syslogPriority syslog.Priority, syslogTag string) (io.Writer, logrus.Hook) {
 	var output io.Writer
 	var hook logrus.Hook
 	var err error
@@ -59,7 +59,8 @@ func getOutput(logServer string, logOutput string) (io.Writer, logrus.Hook) {
 		if logServer == "" {
 			panic("syslog output needs a log server (ie. 127.0.0.1:514)")
 		}
-		hook, err = ls.NewSyslogHook("udp", logServer, syslog.LOG_INFO, "kube-named-ports")
+
+		hook, err = ls.NewSyslogHook("udp", logServer, syslogPriority, syslogTag)
 		if err != nil {
 			panic(err)
 		}

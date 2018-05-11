@@ -8,10 +8,10 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/bpineau/kube-named-ports/config"
-	"github.com/bpineau/kube-named-ports/pkg/health"
-	"github.com/bpineau/kube-named-ports/pkg/services"
-	"github.com/bpineau/kube-named-ports/pkg/worker"
+	"github.com/mirakl/kube-named-ports/config"
+	"github.com/mirakl/kube-named-ports/pkg/health"
+	"github.com/mirakl/kube-named-ports/pkg/services"
+	"github.com/mirakl/kube-named-ports/pkg/worker"
 )
 
 // Run launchs the effective services controllers goroutines

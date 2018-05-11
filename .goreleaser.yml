@@ -1,6 +1,6 @@
 builds:
   -
-    ldflags: -s -w -X github.com/bpineau/kube-named-ports/cmd.version={{.Version}}
+    ldflags: -s -w -X github.com/mirakl/kube-named-ports/cmd.version={{.Version}}
     env:
       - CGO_ENABLED=0
     goos:

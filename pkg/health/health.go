@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/bpineau/kube-named-ports/config"
+	"github.com/mirakl/kube-named-ports/config"
 )
 
 type healthHandler struct {

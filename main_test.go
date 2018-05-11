@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/bpineau/kube-named-ports/cmd"
+	"github.com/mirakl/kube-named-ports/cmd"
 )
 
 func TestMain(t *testing.T) {

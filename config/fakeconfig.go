@@ -6,7 +6,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 
-	"github.com/bpineau/kube-named-ports/pkg/log"
+	"github.com/mirakl/kube-named-ports/pkg/log"
+	"log/syslog"
 )
 
 var (
@@ -21,7 +22,7 @@ var (
 func FakeConfig(objects ...runtime.Object) *KnpConfig {
 	c := &KnpConfig{
 		DryRun:     true,
-		Logger:     log.New("", "", "test"),
+		Logger:     log.New("", "", "test", syslog.LOG_LOCAL0, ""),
 		ClientSet:  fake.NewSimpleClientset(objects...),
 		ResyncIntv: FakeResyncInterval,
 	}
