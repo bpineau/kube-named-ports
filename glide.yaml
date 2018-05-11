@@ -1,4 +1,4 @@
-package: github.com/bpineau/kube-named-ports
+package: github.com/mirakl/kube-named-ports
 import:
 - package: k8s.io/client-go
   version: ~6.0.0

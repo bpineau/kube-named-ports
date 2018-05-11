@@ -9,8 +9,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 
-	"github.com/bpineau/kube-named-ports/config"
-	"github.com/bpineau/kube-named-ports/pkg/log"
+	"github.com/mirakl/kube-named-ports/config"
+	"github.com/mirakl/kube-named-ports/pkg/log"
+	"log/syslog"
 )
 
 func TestHealthCheckHandler(t *testing.T) {
@@ -42,7 +43,7 @@ func TestHealthCheckHandler(t *testing.T) {
 		t.Errorf("HeartBeatService should fail with a wrong port")
 	}
 
-	hh.conf.Logger = log.New("warning", "", "test")
+	hh.conf.Logger = log.New("warning", "", "test", syslog.LOG_LOCAL0, "")
 	hh.healthCheckReply(new(FailingResponseWriter), &http.Request{RemoteAddr: "127.0.0.1"})
 	hook := hh.conf.Logger.Hooks[logrus.InfoLevel][0].(*test.Hook)
 	if len(hook.Entries) != 1 {

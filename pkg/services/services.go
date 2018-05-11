@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bpineau/kube-named-ports/config"
-	"github.com/bpineau/kube-named-ports/pkg/worker"
+	"github.com/mirakl/kube-named-ports/config"
+	"github.com/mirakl/kube-named-ports/pkg/worker"
 
 	core_v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
