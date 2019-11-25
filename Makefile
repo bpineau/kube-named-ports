@@ -2,12 +2,11 @@
 all: build
 
 tools:
-	which gometalinter || ( go get -u github.com/alecthomas/gometalinter && gometalinter --install )
-	which glide || go get -u github.com/Masterminds/glide
+	which golangci-lint || ( curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $$(go env GOPATH)/bin v1.21.0 )
 	which goveralls || go get github.com/mattn/goveralls
 
 lint:
-	gometalinter --concurrency=1 --deadline=300s --vendor --disable-all \
+	golangci-lint --concurrency=1 --deadline=300s --disable-all \
 		--enable=golint \
 		--enable=vet \
 		--enable=vetshadow \
@@ -17,7 +16,6 @@ lint:
 		--enable=deadcode \
 		--enable=ineffassign \
 		--enable=dupl \
-		--enable=gotype \
 		--enable=varcheck \
 		--enable=interfacer \
 		--enable=goconst \
@@ -27,13 +25,10 @@ lint:
 		--enable=gas \
 		--enable=goimports \
 		--enable=gocyclo \
-		./...
+		run ./...
 
 fmt:
 	go fmt ./...
-
-deps:
-	glide install
 
 build:
 	env CGO_ENABLED=0 go build -i
