@@ -24,10 +24,9 @@ annotations:
 
 ## Build
 
-Assuming you have go 1.9 (or up) and glide in the path, and GOPATH configured:
+Assuming you have go 1.13.4 (or up) :
 
 ```shell
-make deps
 make build
 ```
 
