@@ -157,7 +157,8 @@ func getClusterZone(project string, cluster string, svc *container.Service) (str
 func (n *NamedPort) getInstanceGroups(svc *container.Service, csvc *compute.Service) (*[]igInfo, error) {
 	var igz []igInfo
 
-	poolList, err := svc.Projects.Zones.Clusters.NodePools.List(n.project, n.zone, n.cluster).Do()
+	parent := "projects/" + n.project + "/locations/" + n.zone + "/clusters/" + n.cluster
+	poolList, err := svc.Projects.Locations.Clusters.NodePools.List(parent).Do()
 	if err != nil {
 		return &igz, fmt.Errorf("failed to list node pools for cluster %q: %v", n.cluster, err)
 	}
