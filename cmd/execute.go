@@ -19,7 +19,7 @@ import (
 const appName = "kube-named-ports"
 
 var (
-	version = "0.4.0 (HEAD)"
+	version = "0.5.0 (HEAD)"
 
 	cfgFile   string
 	apiServer string

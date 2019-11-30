@@ -85,7 +85,7 @@ spec:
     spec:
       containers:
         - name: kube-named-ports
-          image: bpineau/kube-named-ports:0.4.0
+          image: bpineau/kube-named-ports:0.5.0
           args:
             - --cluster=MySuperCluster
             - --healthcheck-port=8080
