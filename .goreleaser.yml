@@ -3,20 +3,34 @@ builds:
     ldflags: -s -w -X github.com/bpineau/kube-named-ports/cmd.version={{.Version}}
     env:
       - CGO_ENABLED=0
+      - GO111MODULE=on
     goos:
       - darwin
       - linux
     goarch:
       - amd64
 
+before:
+  hooks:
+  - go mod download
+
 release:
   # don't autopublish
   draft: true
 
+#signs:
+#  - artifacts: checksum
+
+changelog:
+  filters:
+    exclude:
+      - Merge
+
 dockers:
-  -
-    image: bpineau/kube-named-ports
+  - image_templates:
+    - "bpineau/kube-named-ports:latest"
+    - "bpineau/kube-named-ports:{{ .Tag }}"
     goos: linux
     goarch: amd64
-    latest: true
     dockerfile: Dockerfile.goreleaser
+    skip_push: true

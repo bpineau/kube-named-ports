@@ -3,6 +3,7 @@
 *.so
 *.swp
 *.swo
+profile.cov
 /vendor/
 dist/*
 kube-named-ports
