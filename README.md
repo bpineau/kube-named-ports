@@ -1,6 +1,6 @@
 # kube-named-ports
 
-[![Build Status](https://travis-ci.org/bpineau/kube-named-ports.svg?branch=master)](https://travis-ci.org/bpineau/kube-named-ports)
+[![Build Status](https://github.com/bpineau/kube-named-ports/workflows/CI/badge.svg)](https://github.com/bpineau/kube-named-ports/actions)
 [![Coverage Status](https://coveralls.io/repos/github/bpineau/kube-named-ports/badge.svg?branch=master)](https://coveralls.io/github/bpineau/kube-named-ports?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bpineau/kube-named-ports)](https://goreportcard.com/report/github.com/bpineau/kube-named-ports)
 
