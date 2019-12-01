@@ -8,7 +8,6 @@ import (
 	"cloud.google.com/go/compute/metadata"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v0.beta"
 	container "google.golang.org/api/container/v1"
 )
@@ -74,17 +73,12 @@ func getServices(ctx context.Context) (*container.Service, *compute.Service, err
 	// We'll use the current host ServiceAccount if possible. If not available,
 	// pass auth according to https://cloud.google.com/docs/authentication/
 	// (ie. via GOOGLE_APPLICATION_CREDENTIALS environment or otherwise).
-	hc, err := google.DefaultClient(ctx, container.CloudPlatformScope, compute.CloudPlatformScope)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not get authenticated client: %v", err)
-	}
-
-	svc, err := container.New(hc)
+	svc, err := container.NewService(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not initialize gke client: %v", err)
 	}
 
-	csvc, err := compute.New(hc)
+	csvc, err := compute.NewService(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not initialize compute client: %v", err)
 	}
