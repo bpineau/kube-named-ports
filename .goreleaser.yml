@@ -14,9 +14,10 @@ before:
   hooks:
   - go mod download
 
-release:
-  # publish as a github release draft - let a human validate
-  draft: true
+#release:
+#  # publish as a github release draft - let a human validate
+#  # (well, no after all - or docker image won't be published either)
+#  draft: true
 
 changelog:
   filters:
