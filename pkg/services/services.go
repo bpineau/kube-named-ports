@@ -184,10 +184,14 @@ func (c *Controller) processNextItem() bool {
 }
 
 func (c *Controller) processItem(key string) error {
-	obj, _, err := c.informer.GetIndexer().GetByKey(key)
+	obj, exist, err := c.informer.GetIndexer().GetByKey(key)
 
 	if err != nil {
 		return fmt.Errorf("Error fetching object with key %s from store: %v", key, err)
+	}
+
+	if !exist {
+		return fmt.Errorf("Object doesn't exist anymore with key %s", key)
 	}
 
 	svc := obj.(*core_v1.Service)
